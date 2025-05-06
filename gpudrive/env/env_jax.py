@@ -177,6 +177,9 @@ class GPUDriveJaxEnv(GPUDriveGymEnv):
                 f"Invalid dynamics model: {self.config.dynamics_model}"
             )
 
+# not sure what thif file is doing
+
+# here are the actins returned based on the type of action space
     def _set_discrete_action_space(self) -> None:
         """Configure the discrete action space."""
 

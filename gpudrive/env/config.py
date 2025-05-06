@@ -74,6 +74,8 @@ class EnvConfig:
     dyaw: torch.Tensor = torch.round(
         torch.linspace(-3.14, 3.14, 20), decimals=3
     )
+    # added control frequency to the action varible
+    control_freq:  torch.Tensor = torch.round(torch.linspace(0.0, 0.2, 10), decimals=2)
 
     # Global action space settings if StateDynamicsModel is used
     x: torch.Tensor = torch.round(

@@ -97,6 +97,8 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
         # Initialize VBD model if used
         self._initialize_vbd()
 
+
+# some actors 
         # Setup action and observation spaces
         self.observation_space = Box(
             low=-1.0,
@@ -652,6 +654,8 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
                 f"Invalid dynamics model: {self.config.dynamics_model}"
             )
 
+# here are the actins returned based on the type of action space
+
     def _set_discrete_action_space(self) -> None:
         """Configure the discrete action space based on dynamics model."""
         products = None
@@ -1155,6 +1159,8 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
         # Reshape back to original format
         return traj_features.reshape(original_shape)
 
+
+# we define the paramaters of the environment 
     def get_obs(self, mask=None):
         """Get observation: Combine different types of environment information into a single tensor.
         Returns:

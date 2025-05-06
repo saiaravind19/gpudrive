@@ -236,6 +236,8 @@ if __name__ == "__main__":
     scene_config = SceneConfig(
         "/data/formatted_json_v2_no_tl_train/", NUM_WORLDS
     )
+
+    # add one more parameter for freq
     env_config = EnvConfig(
         dynamics_model=args.dynamics_model,
         steer_actions=torch.round(torch.linspace(-0.3, 0.3, 7), decimals=3),
