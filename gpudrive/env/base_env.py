@@ -105,6 +105,7 @@ class GPUDriveGymEnv(gym.Env, metaclass=abc.ABCMeta):
             delta_local=madrona_gpudrive.DynamicsModel.DeltaLocal,
             bicycle=madrona_gpudrive.DynamicsModel.InvertibleBicycle,
             state=madrona_gpudrive.DynamicsModel.State,
+            #adaptiveclassic=madrona_gpudrive.DynamicsModel.AdaptiveClassic,
         )
 
         params = madrona_gpudrive.Parameters()

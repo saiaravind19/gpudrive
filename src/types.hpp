@@ -132,7 +132,8 @@ namespace madrona_gpudrive
         ClassicAction classic;
         DeltaAction delta;
         StateAction state;
-        
+        //float control_freq;  // New field sharing memory
+
         static inline Action zero()
         {
             return Action{

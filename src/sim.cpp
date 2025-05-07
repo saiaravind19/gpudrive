@@ -359,6 +359,11 @@ inline void movementSystem(Engine &e,
                 forwardStateModel(action, rotation, position, velocity);
                 break;
             }
+            /*case DynamicsModel::AdaptiveClassic:
+            {
+                adaptiveforwardKinematics(action, size, rotation, position, velocity,control_freq );
+                break;
+            }*/
         }
     } else {
         // Follow expert trajectory
@@ -935,6 +940,8 @@ void setupRestOfTasks(TaskGraphBuilder &builder, const Sim::Config &cfg,
 #endif
 }
 
+
+//This piece of code is used for scheduling the steps in simulation
 static void setupStepTasks(TaskGraphBuilder &builder, const Sim::Config &cfg) {
     auto moveSystem = builder.addToGraph<ParallelForNode<Engine,
         movementSystem,
