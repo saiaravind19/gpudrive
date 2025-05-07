@@ -11,7 +11,7 @@ namespace madrona_gpudrive
     inline void forwardKinematics(const Action &action, VehicleSize &size, Rotation &rotation, Position &position, Velocity &velocity)
     {
         const float maxSpeed{std::numeric_limits<float>::max()};
-        const float dt{0.1};
+        const float dt{0.2};
 
         auto clipSpeed = [maxSpeed](float speed)
         {
@@ -55,7 +55,7 @@ namespace madrona_gpudrive
         action.classic.acceleration = fmaxf(-6.0, fminf(action.classic.acceleration, 6.0));
         action.classic.steering = fmaxf(-3.0, fminf(action.classic.steering, 3.0));
 
-        const float dt{0.1};
+        const float dt{0.2};
         float yaw = utils::quatToYaw(rotation);
         float speed = velocity.linear.length();
         //new_x = x + vel_x * t + 0.5 * accel * jnp.cos(yaw) * t**2
@@ -84,7 +84,7 @@ namespace madrona_gpudrive
     {
         // start delta model
             // start DeltaLocal
-        const float dt{0.1};
+        const float dt{0.2};
         float yaw = utils::quatToYaw(rotation);
         // rotated_xy = jnp.matmul(rotation_mat, action.data[..., :2, jnp.newaxis], precision='float32')[..., 0]
         // From https://en.wikipedia.org/wiki/Rotation_matrix
@@ -116,7 +116,7 @@ namespace madrona_gpudrive
 
     inline Action inverseBicycleModel(const Rotation &rotation, const Velocity &velocity, const Rotation &targetRotation, const Velocity &targetVelocity)
     {
-        const float dt{0.1};
+        const float dt{0.2};
 
         Action action = {.classic = {0, 0, 0}};
         float speed = velocity.linear.length();
@@ -192,4 +192,57 @@ namespace madrona_gpudrive
 
         rotation = Quat::angleAxis(action.state.yaw, madrona::math::up);
     }
+
+/*
+    inline void adaptiveforwardKinematics(const Action &action, VehicleSize &size, Rotation &rotation, Position &position, Velocity &velocity,float control_time)
+    {
+        // Clip acceleration and steering
+        action.classic.acceleration = fmaxf(-6.0, fminf(action.classic.acceleration, 6.0));
+        action.classic.steering = fmaxf(-3.0, fminf(action.classic.steering, 3.0));
+
+        // TODO(samk): hoist into Vector2::PolarToVector2D
+        auto polarToVector2D = [](float r, float theta)
+        {
+            return math::Vector2{r * cosf(theta), r * sinf(theta)};
+        };
+    {
+        const float maxSpeed{std::numeric_limits<float>::max()};
+        const float dt = control_time;
+
+        auto clipSpeed = [maxSpeed](float speed)
+        {
+            return std::max(std::min(speed, maxSpeed), -maxSpeed);
+        };
+        // TODO(samk): hoist into Vector2::PolarToVector2D
+        auto polarToVector2D = [](float r, float theta)
+        {
+            return math::Vector2{r * cosf(theta), r * sinf(theta)};
+        };
+
+        float speed = velocity.linear.length();
+        float yaw = utils::quatToYaw(rotation);
+        // Average speed
+        const float v{clipSpeed(speed + 0.5f * action.classic.acceleration * dt)};
+        const float tanDelta{tanf(action.classic.steering)};
+        // Assume center of mass lies at the middle of length, then l / L == 0.5.
+        const float beta{std::atan(0.5f * tanDelta)};
+        const math::Vector2 d{polarToVector2D(v, yaw + beta)};
+        const float w{v * std::cos(beta) * tanDelta / size.length};
+
+        // model.position += d * dt;
+        // model.heading = utils::AngleAdd(model.heading, w * dt);
+        // model.speed = clipSpeed(model.speed + action.acceleration * dt);
+        float new_yaw = utils::AngleAdd(yaw, w * dt);
+        float new_speed = clipSpeed(speed + action.classic.acceleration * dt);
+        position.x += d.x * dt;
+        position.y += d.y * dt;
+        position.z = 1;
+        rotation = Quat::angleAxis(new_yaw, madrona::math::up);
+        velocity.linear.x = new_speed * cosf(new_yaw);
+        velocity.linear.y = new_speed * sinf(new_yaw);
+        velocity.linear.z = 0;
+        velocity.angular = Vector3::zero();
+        velocity.angular.z = w;
+    }*/
+
 }

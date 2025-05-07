@@ -714,7 +714,7 @@ void Manager::deleteAgents(const std::unordered_map<int32_t, std::vector<int32_t
     reset(worldIndices);
 }
 
-
+// touchpoint for cpp and python
 Tensor Manager::actionTensor() const
 {
     return impl_->exportTensor(ExportID::Action, TensorElementType::Float32,
