@@ -111,6 +111,7 @@ namespace madrona_gpudrive
         float acceleration;
         float steering;
         float headAngle;
+        float control_freq;
     };
 
     struct DeltaAction
@@ -132,7 +133,6 @@ namespace madrona_gpudrive
         ClassicAction classic;
         DeltaAction delta;
         StateAction state;
-        //float control_freq;  // New field sharing memory
 
         static inline Action zero()
         {

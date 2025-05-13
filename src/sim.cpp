@@ -337,6 +337,8 @@ inline void movementSystem(Engine &e,
 
     if (controlledState.controlled) {
         Action &action = e.get<Action>(agent_iface.e);
+        // print the action commads to see of the frequency is passed or not
+        std::cout << "Control Frequency: " << action.classic.control_freq << std::endl;
         switch (e.data().params.dynamicsModel) {
 
             case DynamicsModel::InvertibleBicycle:

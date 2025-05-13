@@ -596,6 +596,7 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
 
     def step_dynamics(self, actions):
         if actions is not None:
+
             self._apply_actions(actions)
         self.sim.step()
         not_done_worlds = ~self.get_dones().any(
@@ -617,7 +618,7 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
                     torch.nan_to_num(actions, nan=0).long().to(self.device)
                 )
                 action_value_tensor = self.action_keys_tensor[actions]
-
+            
             elif actions.dim() == 3:
                 if actions.shape[2] == 1:
                     actions = actions.squeeze(dim=2).to(self.device)
@@ -640,7 +641,7 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
             or self.config.dynamics_model == "bicycle"
         ):
             # Action space: (acceleration, steering, heading)
-            self.sim.action_tensor().to_torch()[:, :, :3].copy_(actions)
+            self.sim.action_tensor().to_torch()[:, :, :4].copy_(actions)
         elif self.config.dynamics_model == "delta_local":
             # Action space: (dx, dy, dyaw)
             self.sim.action_tensor().to_torch()[:, :, :3].copy_(actions)
@@ -661,6 +662,8 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
         products = None
 
         if self.config.dynamics_model == "delta_local":
+            print("delta_local")
+
             self.dx = self.config.dx.to(self.device)
             self.dy = self.config.dy.to(self.device)
             self.dyaw = self.config.dyaw.to(self.device)
@@ -672,8 +675,9 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
             self.steer_actions = self.config.steer_actions.to(self.device)
             self.accel_actions = self.config.accel_actions.to(self.device)
             self.head_actions = self.config.head_tilt_actions.to(self.device)
+            self.current_action_frequency = self.config.control_freq.to(self.device)    
             products = product(
-                self.accel_actions, self.steer_actions, self.head_actions
+                self.accel_actions, self.steer_actions, self.head_actions , self.current_action_frequency
             )
         elif self.config.dynamics_model == "state":
             self.x = self.config.x.to(self.device)
@@ -691,18 +695,21 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
         self.action_key_to_values = {}
         self.values_to_action_key = {}
         if products is not None:
-            for action_idx, (action_1, action_2, action_3) in enumerate(
+            for action_idx, (action_1, action_2, action_3 , action_4) in enumerate(
                 products
             ):
                 self.action_key_to_values[action_idx] = [
                     action_1.item(),
                     action_2.item(),
                     action_3.item(),
+                    action_4.item(),
                 ]
                 self.values_to_action_key[
                     round(action_1.item(), 5),
                     round(action_2.item(), 5),
                     round(action_3.item(), 5),
+                    round(action_4.item(), 5),
+
                 ] = action_idx
 
             self.action_keys_tensor = torch.tensor(
@@ -1432,7 +1439,16 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
             inferred_actions[..., 1] = torch.clamp(
                 inferred_actions[..., 1], -0.3, 0.3
             )
-
+        # Add control_frequency as the 4th component
+            control_frequency_tensor = torch.full(
+               inferred_actions[..., :1].shape,  # Match the shape of the first action dimension
+               0.1,  # Use the first value or another specific value
+               device=self.device,
+           )
+            inferred_actions = torch.cat(
+                (inferred_actions, control_frequency_tensor), dim=-1
+            )
+        
         return (
             inferred_actions,
             log_trajectory.pos_xy,
@@ -1472,13 +1488,13 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
 if __name__ == "__main__":
 
     env_config = EnvConfig(
-        dynamics_model="delta_local",
+        dynamics_model="classic",
     )
     render_config = RenderConfig()
 
     # Create data loader
     train_loader = SceneDataLoader(
-        root="data/processed/examples",
+        root="/gpudrive/data/processed/examples",
         batch_size=2,
         dataset_size=100,
         sample_with_replacement=True,
@@ -1502,7 +1518,7 @@ if __name__ == "__main__":
     agent_obs_frames = []
 
     expert_actions, _, _, _ = env.get_expert_actions()
-
+    
     env_idx = 0
 
     for t in range(10):
