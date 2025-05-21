@@ -11,7 +11,7 @@ namespace madrona_gpudrive
     inline void forwardKinematics(const Action &action, VehicleSize &size, Rotation &rotation, Position &position, Velocity &velocity)
     {
         const float maxSpeed{std::numeric_limits<float>::max()};
-        const float dt{0.2};
+        float dt = action.classic.control_freq;
 
         auto clipSpeed = [maxSpeed](float speed)
         {
