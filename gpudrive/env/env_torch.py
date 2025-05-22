@@ -1439,15 +1439,9 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
             inferred_actions[..., 1] = torch.clamp(
                 inferred_actions[..., 1], -0.3, 0.3
             )
-        # Add control_frequency as the 4th component
-            control_frequency_tensor = torch.full(
-               inferred_actions[..., :1].shape,  # Match the shape of the first action dimension
-               0.1,  # Use the first value or another specific value
-               device=self.device,
-           )
-            inferred_actions = torch.cat(
-                (inferred_actions, control_frequency_tensor), dim=-1
-            )
+
+            # Add the control frequency as the 4th element after adding in dataset
+            
         
         return (
             inferred_actions,
