@@ -37,7 +37,8 @@ dependencies = [
     "safetensors",
     "python-box",
     "tqdm",
-    "jax",
+    "jax==0.4.6",
+    "jaxlib==0.6.0",
     "huggingface_hub",
 ]
 

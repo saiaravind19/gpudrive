@@ -118,7 +118,7 @@ namespace madrona_gpudrive
     {
         const float dt{0.2};
 
-        Action action = {.classic = {0, 0, 0}};
+        Action action = {.classic = {0, 0, 0,0.1}};
         float speed = velocity.linear.length();
         float target_speed = targetVelocity.linear.length();
 

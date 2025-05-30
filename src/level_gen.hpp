@@ -20,7 +20,7 @@ void destroyWorld(Engine &ctx);
         case DynamicsModel::Classic:
         case DynamicsModel::InvertibleBicycle:
         {
-            return Action{.classic = {0, 0, 0}};
+            return Action{.classic = {0, 0, 0 ,0.1}};
             break;
         }
 
@@ -33,7 +33,7 @@ void destroyWorld(Engine &ctx);
             return Action{.state = {.position = madrona::math::Vector3{0, 0, 1}, .yaw = 0, .velocity = {.linear = madrona::math::Vector3::zero(), .angular = madrona::math::Vector3::zero()}}};
         }
         default:
-            return Action{.classic = {0, 0, 0}};
+            return Action{.classic = {0, 0, 0 ,0.1}};
         }
     }
 

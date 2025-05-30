@@ -137,7 +137,7 @@ namespace madrona_gpudrive
         static inline Action zero()
         {
             return Action{
-                .classic = {.acceleration = 0, .steering = 0, .headAngle = 0}};
+                .classic = {.acceleration = 0, .steering = 0, .headAngle = 0 , .control_freq = 0.1}};
         }
     };
 
