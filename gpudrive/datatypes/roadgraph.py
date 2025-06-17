@@ -70,6 +70,14 @@ class GlobalRoadGraphPoints:
         self.vbd_type = roadgraph_tensor[:, :, 8] # VBD map types aligned with Waymax
         self.num_points = roadgraph_tensor.shape[1]
 
+        self.unnormalised_x = roadgraph_tensor[:, :, 0]
+        self.unnormalised_y = roadgraph_tensor[:, :, 1]
+        self.unnormalised_xy = torch.stack((self.x, self.y), dim=-1)
+        self.unnormalised_segment_length = roadgraph_tensor[:, :, 2]
+        self.unnormalised_segment_width = roadgraph_tensor[:, :, 3]
+        self.unnormalised_segment_height = roadgraph_tensor[:, :, 4]
+        self.unnormalised_orientation = roadgraph_tensor[:, :, 5]
+        
     @classmethod
     def from_tensor(
         cls,
@@ -293,6 +301,13 @@ class LocalRoadGraphPoints:
             # Note: To use waymax map type take index 8 instead of 6
             self.data = local_roadgraph_tensor[:, :, :6]
             self.type = local_roadgraph_tensor[:, :, 6].long()
+            
+            self.unnormalised_x = local_roadgraph_tensor[:, :, 0]
+            self.unnormalised_y = local_roadgraph_tensor[:, :, 1]
+            self.unnormalised_orientation = local_roadgraph_tensor[:, :, 5]
+            self.unnormalised_segment_length = local_roadgraph_tensor[:, :, 2]
+            self.unnormalised_segment_width = local_roadgraph_tensor[:, :, 3]
+
         else:
             self.x = local_roadgraph_tensor[:, :, :, 0]
             self.y = local_roadgraph_tensor[:, :, :, 1]
@@ -303,7 +318,14 @@ class LocalRoadGraphPoints:
             # Note: To use waymax map type take index 8 instead of 6
             self.type = local_roadgraph_tensor[:, :, :, 6].long()
             self.id = local_roadgraph_tensor[:, :, :, 7]
-      
+            
+            self.unnormalised_x = local_roadgraph_tensor[:, :, :,  0]
+            self.unnormalised_y = local_roadgraph_tensor[:, :, :,  1]
+            self.unnormalised_orientation = local_roadgraph_tensor[:, :, :,  5]
+            self.unnormalised_segment_length = local_roadgraph_tensor[:, :, :,  2]
+            self.unnormalised_segment_width = local_roadgraph_tensor[:, :, :,  3]
+            
+
     @classmethod
     def from_tensor(
         cls,

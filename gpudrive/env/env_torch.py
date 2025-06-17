@@ -630,7 +630,6 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
 
         else:
             action_value_tensor = actions.to(self.device)
-
         # Feed the action values to gpudrive
         self._copy_actions_to_simulator(action_value_tensor)
 
@@ -1206,6 +1205,83 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
             )
 
         return obs
+
+# extract unnormalised observations from the simulator
+    def get_unormalized_agent_obs(self, mask=None):
+        ego_state = LocalEgoState.from_tensor(
+            self_obs_tensor=self.sim.self_observation_tensor(),
+            backend=self.backend,
+            device=self.device,
+            mask=mask,
+        )
+    
+        agent_state = GlobalEgoState.from_tensor(
+            abs_self_obs_tensor=self.sim.absolute_self_observation_tensor(),
+            backend=self.backend,
+            device=self.device,
+        )
+
+        # Compute velocity components
+        vx = ego_state.unnormalised_speed * torch.cos(agent_state.rotation_angle)
+        vy = ego_state.unnormalised_speed * torch.sin(agent_state.rotation_angle)
+
+        # Concatenate tensors along the last dimension
+        local_ego_tensor = torch.stack(
+            [
+                ego_state.id,  # Add an extra dimension for scalar tensors
+                # Vehicle dimensions
+                agent_state.vehicle_length,
+                agent_state.vehicle_width,
+                agent_state.vehicle_height,
+                # Agent orientation
+                agent_state.pos_x,
+                agent_state.pos_y,
+                agent_state.pos_z,
+                #rotation_as_quaternion_flat,  # Flatten quaternion
+                agent_state.rotation_angle,
+                # Agent characteristics
+                ego_state.unnormalised_speed,
+                vx,
+                vy,
+                # Global goal
+                agent_state.goal_x,
+                agent_state.goal_y,
+                ## Relative goal with respect to agent
+                ego_state.unnormalised_rel_goal_x,
+                ego_state.unnormalised_rel_goal_y,
+            ],
+            dim=2,  # Concatenate along the last dimension
+        )
+        return local_ego_tensor
+
+    def get_unnormalised_road_obs(self, mask=None):
+        """Get unnormalized road observations with agent IDs."""
+ 
+        # Extract road observations
+        local_road_graph = LocalRoadGraphPoints.from_tensor(
+            local_roadgraph_tensor=self.sim.agent_roadmap_tensor(),
+            backend=self.backend,
+            device=self.device,
+            mask=mask,
+        )
+
+# Concatenate tensors along the last dimension
+        unnormalized_road_obs = torch.stack(
+            [
+                local_road_graph.unnormalised_x,
+                local_road_graph.unnormalised_y,
+                local_road_graph.unnormalised_orientation,
+                local_road_graph.type,
+                local_road_graph.unnormalised_segment_length,
+                local_road_graph.unnormalised_segment_width,
+            ],
+            dim=2,  # Concatenate along the last dimension
+        )
+
+        # Concatenate agent IDs with road observations
+
+        return unnormalized_road_obs
+
 
     def get_controlled_agents_mask(self):
         """Get the control mask. Shape: [num_worlds, max_agent_count]"""

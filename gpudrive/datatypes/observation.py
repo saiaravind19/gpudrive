@@ -17,7 +17,7 @@ class LocalEgoState:
 
     Attributes:
         speed: Speed of the agent in relative coordinates.
-        vehicle_length: Length of the agent's bounding box.
+        vehicle_length: Length of the agent's bounding bveox.
         vehicle_width: Width of the agent's bounding box.
         vehicle_height: Height of the agent's bounding box.
         rel_goal_x: Relative x-coordinate to the goal.
@@ -38,6 +38,10 @@ class LocalEgoState:
             self.rel_goal_y = self_obs_tensor[:, 5]
             self.is_collided = self_obs_tensor[:, 6]
             self.id = self_obs_tensor[:, 7]
+
+            self.unnormalised_speed = self_obs_tensor[:, 0]
+            self.unnormalised_rel_goal_x = self_obs_tensor[:, 4]
+            self.unnormalised_rel_goal_y = self_obs_tensor[:, 5]
         else:
             self.speed = self_obs_tensor[:, :, 0]
             self.vehicle_length = self_obs_tensor[:, :, 1] * AGENT_SCALE
@@ -48,6 +52,10 @@ class LocalEgoState:
             self.is_collided = self_obs_tensor[:, :, 6]
             self.id = self_obs_tensor[:, :, 7]
 
+            self.unnormalised_speed = self_obs_tensor[:, :, 0]
+            self.unnormalised_rel_goal_x = self_obs_tensor[:, :, 4]
+            self.unnormalised_rel_goal_y = self_obs_tensor[:, :, 5]
+            
     @classmethod
     def from_tensor(
         cls,
