@@ -630,6 +630,7 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
 
         else:
             action_value_tensor = actions.to(self.device)
+
         # Feed the action values to gpudrive
         self._copy_actions_to_simulator(action_value_tensor)
 
@@ -1206,8 +1207,28 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
 
         return obs
 
-# extract unnormalised observations from the simulator
-    def get_unormalized_agent_obs(self, mask=None):
+    def get_unormalized_agent_obs(self, mask=None) -> torch.tensor:
+        """
+        Get the combined unnormalised observation of all the agents in the scene
+        Returns:
+            torch.Tensor: (num_worlds, max_agent_count, num_features)
+            features: 
+            0   : agent_id
+            1   : vehicle_length
+            2   : vehicle_width
+            3   : vehicle_height
+            4   : pos_x (position are w.r.t global frame(centre of the world))  
+            5   : pos_y (position are w.r.t global frame(centre of the world)) 
+            6   : pos_z (position are w.r.t global frame(centre of the world)) 
+            7   : rotation
+            8   : speed 
+            9   : Velocity in x 
+            10  : Velocity in y
+            11  : goal_x
+            12  : goal_y
+            13  : relative goal x in local frame of the agent 
+            14  : relative goal y in local frame of the agent
+        """
         ego_state = LocalEgoState.from_tensor(
             self_obs_tensor=self.sim.self_observation_tensor(),
             backend=self.backend,
@@ -1233,11 +1254,11 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
                 agent_state.vehicle_length,
                 agent_state.vehicle_width,
                 agent_state.vehicle_height,
-                # Agent orientation
+                # Agent position
                 agent_state.pos_x,
                 agent_state.pos_y,
                 agent_state.pos_z,
-                #rotation_as_quaternion_flat,  # Flatten quaternion
+                # agent orientation
                 agent_state.rotation_angle,
                 # Agent characteristics
                 ego_state.unnormalised_speed,
@@ -1250,22 +1271,29 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
                 ego_state.unnormalised_rel_goal_x,
                 ego_state.unnormalised_rel_goal_y,
             ],
-            dim=2,  # Concatenate along the last dimension
+            dim=2, 
         )
         return local_ego_tensor
 
     def get_unnormalised_road_obs(self, mask=None):
-        """Get unnormalized road observations with agent IDs."""
+        """Get unnormalized road observations of all the agents.
+        Returns:
+            torch.Tensor: (num_worlds, max_agent_count, num_features)
+            features:
+                0 : unnormalised_x  ( x-coordinate of the road point relative to each agent) 
+                1 : unnormalised_y  ( y-coordinate of the road point relative to each agent)
+                2 : unnormalised_orientation (Orientation of the road segment.)
+                3 : type   ( Type of road point (e.g., edge, lane))
+                4 : unnormalised_segment_length ( Length of the road segment.)
+                5 : unnormalised_segment_width  ( Scale of the road segment.)
+        """
  
-        # Extract road observations
         local_road_graph = LocalRoadGraphPoints.from_tensor(
             local_roadgraph_tensor=self.sim.agent_roadmap_tensor(),
             backend=self.backend,
             device=self.device,
             mask=mask,
         )
-
-# Concatenate tensors along the last dimension
         unnormalized_road_obs = torch.stack(
             [
                 local_road_graph.unnormalised_x,
@@ -1275,10 +1303,8 @@ class GPUDriveTorchEnv(GPUDriveGymEnv):
                 local_road_graph.unnormalised_segment_length,
                 local_road_graph.unnormalised_segment_width,
             ],
-            dim=2,  # Concatenate along the last dimension
+            dim=2,  
         )
-
-        # Concatenate agent IDs with road observations
 
         return unnormalized_road_obs
 
