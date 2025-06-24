@@ -73,7 +73,6 @@ for t in range(env.episode_len):
         action = torch.cat(
             (action, control_frequency_tensor), dim=-1
         )
-    # need to look how to use it
     
     '''
     means_xy = (env.sim.world_means_tensor().to_torch()[:, :2].to(device='cuda:0'))
@@ -92,7 +91,7 @@ for t in range(env.episode_len):
 
     local_obs = LocalEgoState.from_tensor(env.sim.self_observation_tensor())
     print("local goal x:",local_obs.unnormalised_rel_goal_x.shape)
-    print("local goal y:",local_obs.unnormalised_rel_goal_y.shape)'''
+    print("local goal y:",local_obs.unnormalised_rel_goal_y.shape)
 
     local_road_polynomials = LocalRoadGraphPoints.from_tensor(env.sim.agent_roadmap_tensor())
     #print("local_road_polynomials X:", local_road_polynomials.x)
@@ -103,10 +102,13 @@ for t in range(env.episode_len):
 
     global_road_polynomials = GlobalRoadGraphPoints.from_tensor(env.sim.map_observation_tensor())
     #global_road_polynomials.restore_mean(mean_x=means_xy[:, 0], mean_y=means_xy[:, 1])
-    #print("global_road_polynomials X:", global_road_polynomials.x.shape)
+    #print("global_road_polynomials X:", global_road_polynomials.x.shape)'''
     
-    agant_tensor = env.get_unormalized_agent_obs()
+    # Get the unnormalised information about the agents
+    agant_tensor = env.get_unormalized_agent_obs()  
     #print(agant_tensor.shape)
+    
+    # Get the unnormalised information about the road polygons
     road_tensor =  env.get_unnormalised_road_obs()
 
     print(road_tensor.shape)
